@@ -1,9 +1,22 @@
 {
-  "logs": [],
-  "sensitivity_profile": {},
-  "user_profile": {
-    "current_pattern": "",
-    "diagnosis": "",
-    "notes": ""
+  "logs": [
+    {
+      "id": 1,
+      "timestamp": "2026-07-03T09:00:00",
+      "food": "南瓜泥拌面",
+      "reaction": "positive",
+      "note": "吃着还行，胃没有不舒服",
+      "pattern": "脾胃虚寒"
+    }
+  ],
+  "sensitivity_profile": {
+    "南瓜": {"count": 3, "positive": 3, "negative": 0, "status": "safe"},
+    "小米": {"count": 5, "positive": 4, "negative": 1, "status": "safe"},
+    "山药": {"count": 4, "positive": 4, "negative": 0, "status": "safe"},
+    "牛奶": {"count": 1, "positive": 0, "negative": 1, "status": "unsafe"},
+    "泡面": {"count": 1, "positive": 0, "negative": 1, "status": "unsafe"},
+    "生姜": {"count": 2, "positive": 2, "negative": 0, "status": "safe"},
+    "鸡蛋": {"count": 2, "positive": 1, "negative": 1, "status": "caution"},
+    "红枣": {"count": 3, "positive": 3, "negative": 0, "status": "safe"}
   }
 }
