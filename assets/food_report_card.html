@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>食物分析卡</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#f8f7f4;padding:24px;color:#1a1a18}
+  .card{max-width:600px;margin:0 auto;background:#fff;border-radius:16px;padding:28px 32px;border:1px solid #e0ddd5}
+  .h-row{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+  .light{display:inline-block;width:48px;height:48px;border-radius:50%;text-align:center;line-height:48px;font-size:20px;font-weight:500}
+  .green{background:#EAF3DE;color:#639922}
+  .red{background:#FCEBEB;color:#E24B4A}
+  .amber{background:#FAEEDA;color:#BA7517}
+  h1{font-size:20px;font-weight:500}
+  .verdict{font-size:14px;color:#6b6a64;margin-top:2px}
+  .section{margin-bottom:16px}
+  .section h2{font-size:14px;font-weight:500;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid #e0ddd5}
+  .section p{font-size:13px;color:#6b6a64;line-height:1.7}
+  .alt-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .alt-item{padding:8px 14px;background:#EEEDFE;border-radius:10px;font-size:13px;color:#534AB7}
+  .alt-item .emoji{margin-right:4px}
+  .divider{height:1px;background:#e0ddd5;margin:16px 0}
+  .footer{text-align:center;font-size:11px;color:#9a9892;margin-top:16px}
+</style></head><body>
+<div class="card">
+  <div class="h-row">
+    <span class="light" id="lightSignal">●</span>
+    <div><h1 id="foodName">食物名称</h1><div class="verdict" id="verdictText">分析结论</div></div>
+  </div>
+  <div class="section">
+    <h2>西医分析</h2>
+    <p id="westAnalysis"></p>
+  </div>
+  <div class="section">
+    <h2>中医分析</h2>
+    <p id="tcmAnalysis"></p>
+  </div>
+  <div class="divider"></div>
+  <div class="section">
+    <h2>替代方案（更好吃 · 更安全）</h2>
+    <div class="alt-list" id="altList"></div>
+  </div>
+  <div class="footer">饮食分析智能体 · 双医交叉验证</div>
+</div>
+</body></html>

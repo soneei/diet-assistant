@@ -1,0 +1,5 @@
+# WorkBuddy system files
+.workbuddy/
+
+# macOS
+.DS_Store

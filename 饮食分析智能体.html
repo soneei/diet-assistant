@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>饮食分析智能体 - 辨证食疗</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg2: #f8f7f4;
+    --card: #ffffff;
+    --border: #e0ddd5;
+    --text: #1a1a18;
+    --text2: #6b6a64;
+    --text3: #9a9892;
+    --primary: #7F77DD;
+    --primary-light: #EEEDFE;
+    --green: #639922;
+    --green-light: #EAF3DE;
+    --amber: #BA7517;
+    --amber-light: #FAEEDA;
+    --coral: #D85A30;
+    --coral-light: #FAECE7;
+    --teal: #1D9E75;
+    --teal-light: #E1F5EE;
+    --blue: #378ADD;
+    --blue-light: #E6F1FB;
+    --red: #E24B4A;
+    --red-light: #FCEBEB;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06);
+    --radius: 12px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg2);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 24px;
+  }
+  .container { max-width: 820px; margin: 0 auto; }
+
+  /* Header */
+  .header {
+    background: var(--bg);
+    border-radius: var(--radius);
+    padding: 28px 32px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+  .header h1 {
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .header .sub {
+    font-size: 14px;
+    color: var(--text2);
+    margin-top: 4px;
+  }
+  .header .tag-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .tag {
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+  .tag-tcm { background: var(--amber-light); color: var(--amber); }
+  .tag-west { background: var(--blue-light); color: var(--blue); }
+  .tag-core { background: var(--primary-light); color: var(--primary); }
+
+  /* Tab nav */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--bg);
+    border-radius: var(--radius);
+    padding: 4px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+  .tab {
+    flex: 1;
+    padding: 10px 16px;
+    text-align: center;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--text2);
+    background: transparent;
+    border: none;
+    transition: all 0.2s;
+  }
+  .tab:hover { background: var(--bg2); }
+  .tab.active {
+    background: var(--primary-light);
+    color: var(--primary);
+  }
+  .tab .badge {
+    display: inline-block;
+    margin-left: 4px;
+    font-size: 11px;
+    background: var(--text3);
+    color: #fff;
+    border-radius: 10px;
+    padding: 0 6px;
+    line-height: 1.6;
+  }
+  .tab.active .badge { background: var(--primary); }
+
+  /* Cards */
+  .card {
+    background: var(--bg);
+    border-radius: var(--radius);
+    padding: 24px 28px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .card h2 {
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card h2 .icon {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+
+  /* Symptom grid */
+  .symptom-group { margin-bottom: 20px; }
+  .symptom-group h3 {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .symptom-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 6px;
+  }
+  .symptom-btn {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    background: var(--bg);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s;
+    color: var(--text);
+  }
+  .symptom-btn:hover { border-color: var(--primary); background: var(--primary-light); }
+  .symptom-btn.selected {
+    background: var(--primary-light);
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  /* Free text input */
+  .free-text {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 80px;
+    outline: none;
+    transition: border 0.2s;
+    background: var(--bg);
+    color: var(--text);
+  }
+  .free-text:focus { border-color: var(--primary); }
+
+  /* Diagnosis input */
+  .diag-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .diag-field label {
+    display: block;
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+  .diag-field input, .diag-field textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    background: var(--bg);
+    color: var(--text);
+    resize: vertical;
+  }
+  .diag-field input:focus, .diag-field textarea:focus { border-color: var(--primary); }
+  .diag-field textarea { min-height: 60px; }
+
+  /* Button */
+  .btn-primary {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 16px;
+  }
+  .btn-primary:hover { background: #6a62c9; }
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Analysis result */
+  .result-section { display: none; }
+  .result-section.visible { display: block; }
+  .result-section .card { animation: fadeUp 0.3s ease; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .pattern-badge {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-weight: 500;
+    font-size: 15px;
+    margin-bottom: 12px;
+  }
+
+  .principle-box {
+    background: var(--amber-light);
+    border-left: 3px solid var(--amber);
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    margin-bottom: 16px;
+    font-size: 14px;
+    color: var(--amber);
+  }
+
+  .food-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .food-tag {
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .food-ok { background: var(--green-light); color: var(--green); }
+  .food-no { background: var(--red-light); color: var(--red); }
+  .food-warm { background: var(--coral-light); color: var(--coral); }
+  .food-cool { background: var(--blue-light); color: var(--blue); }
+
+  /* Meal plan */
+  .meal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .meal-card {
+    background: var(--bg2);
+    border-radius: 10px;
+    padding: 16px;
+    border: 1px solid var(--border);
+  }
+  .meal-card h4 {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+  .meal-card .meal-icon { margin-right: 6px; }
+  .meal-card p {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.5;
+  }
+
+  /* Feedback */
+  .feedback-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .feedback-btn {
+    padding: 8px 20px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    background: var(--bg);
+    transition: all 0.15s;
+  }
+  .feedback-btn:hover { border-color: var(--text2); }
+  .feedback-btn.selected-good { background: var(--green-light); border-color: var(--green); color: var(--green); }
+  .feedback-btn.selected-bad { background: var(--red-light); border-color: var(--red); color: var(--red); }
+  .feedback-btn.selected-ok { background: var(--amber-light); border-color: var(--amber); color: var(--amber); }
+
+  /* Food detail modal */
+  .food-detail-toggle {
+    color: var(--primary);
+    cursor: pointer;
+    font-size: 13px;
+    margin-top: 8px;
+    display: inline-block;
+  }
+  .food-detail-toggle:hover { text-decoration: underline; }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    body { padding: 12px; }
+    .card { padding: 16px; }
+    .header { padding: 20px; }
+    .diag-row { grid-template-columns: 1fr; }
+    .meal-grid { grid-template-columns: 1fr; }
+    .symptom-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+  }
+
+  /* Hidden state */
+  .hidden { display: none; }
+
+  /* Confidence meter */
+  .confidence-bar {
+    width: 100%;
+    height: 6px;
+    background: var(--bg2);
+    border-radius: 3px;
+    margin: 8px 0 12px 0;
+    overflow: hidden;
+  }
+  .confidence-fill {
+    height: 100%;
+    background: var(--primary);
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+
+  /* Loading animation */
+  .loading-dots::after {
+    content: '';
+    animation: dots 1.5s steps(4, end) infinite;
+  }
+  @keyframes dots {
+    0% { content: ''; }
+    25% { content: '.'; }
+    50% { content: '..'; }
+    75% { content: '...'; }
+  }
+
+  /* Weekly plan */
+  .weekly-toggle {
+    font-size: 13px;
+    color: var(--primary);
+    cursor: pointer;
+    margin-top: 8px;
+    display: inline-block;
+  }
+  .weekly-toggle:hover { text-decoration: underline; }
+  .weekly-plan { margin-top: 12px; }
+  .day-plan {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .day-plan:last-child { border-bottom: none; }
+  .day-plan h5 {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .day-plan p {
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  /* Food properties table */
+  .prop-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin: 10px 0;
+  }
+  .prop-item {
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    text-align: center;
+    background: var(--bg2);
+  }
+  .prop-warm { background: var(--coral-light); color: var(--coral); }
+  .prop-cool { background: var(--blue-light); color: var(--blue); }
+  .prop-neutral { background: var(--bg2); color: var(--text2); }
+</style>
+</head>
+<body>
+
+<div class="container" id="app">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>饮食分析智能体</h1>
+    <div class="sub">辨证食疗 · 双医交叉 · 定制食谱 · 康复追踪</div>
+    <div class="tag-row">
+      <span class="tag tag-tcm">中医辨证</span>
+      <span class="tag tag-west">西医诊断</span>
+      <span class="tag tag-core">交叉验证</span>
+    </div>
+  </div>
+
+  <!-- Tab: 输入 / 结果 / 饮食日志 -->
+  <div class="tabs">
+    <button class="tab active" data-tab="input" onclick="switchTab('input')">症状输入</button>
+    <button class="tab" data-tab="result" onclick="switchTab('result')" id="resultTab">分析结果</button>
+    <button class="tab" data-tab="history" onclick="switchTab('history')" id="historyTab">饮食日志 <span class="badge" id="logCount">0</span></button>
+  </div>
+
+  <!-- ============ TAB 1: INPUT ============ -->
+  <div id="tab-input" class="tab-content">
+
+    <!-- Step 1: 症状选择 -->
+    <div class="card">
+      <h2><span class="icon" style="background:var(--amber-light);color:var(--amber);">1</span> 你现在有什么感觉？</h2>
+
+      <div class="symptom-group">
+        <h3>全身症状</h3>
+        <div class="symptom-grid" data-group="全身">
+          <button class="symptom-btn" data-symptom="怕冷">怕冷</button>
+          <button class="symptom-btn" data-symptom="发热">发热</button>
+          <button class="symptom-btn" data-symptom="怕风">怕风</button>
+          <button class="symptom-btn" data-symptom="无汗">无汗</button>
+          <button class="symptom-btn" data-symptom="有汗">有汗</button>
+          <button class="symptom-btn" data-symptom="身体沉重">身体沉重</button>
+          <button class="symptom-btn" data-symptom="乏力">乏力</button>
+          <button class="symptom-btn" data-symptom="怕热">怕热</button>
+        </div>
+      </div>
+
+      <div class="symptom-group">
+        <h3>头面</h3>
+        <div class="symptom-grid" data-group="头面">
+          <button class="symptom-btn" data-symptom="头痛">头痛</button>
+          <button class="symptom-btn" data-symptom="鼻塞">鼻塞</button>
+          <button class="symptom-btn" data-symptom="流清涕">流清涕</button>
+          <button class="symptom-btn" data-symptom="流黄涕">流黄涕</button>
+          <button class="symptom-btn" data-symptom="咽喉痛">咽喉痛</button>
+          <button class="symptom-btn" data-symptom="咳嗽">咳嗽</button>
+          <button class="symptom-btn" data-symptom="咳白痰">咳白痰</button>
+          <button class="symptom-btn" data-symptom="咳黄痰">咳黄痰</button>
+          <button class="symptom-btn" data-symptom="头晕">头晕</button>
+          <button class="symptom-btn" data-symptom="口干">口干</button>
+          <button class="symptom-btn" data-symptom="口苦">口苦</button>
+          <button class="symptom-btn" data-symptom="口淡无味">口淡无味</button>
+        </div>
+      </div>
+
+      <div class="symptom-group">
+        <h3>消化系统</h3>
+        <div class="symptom-grid" data-group="消化">
+          <button class="symptom-btn" data-symptom="恶心">恶心</button>
+          <button class="symptom-btn" data-symptom="呕吐">呕吐</button>
+          <button class="symptom-btn" data-symptom="食欲差">食欲差</button>
+          <button class="symptom-btn" data-symptom="腹胀">腹胀</button>
+          <button class="symptom-btn" data-symptom="腹痛">腹痛</button>
+          <button class="symptom-btn" data-symptom="腹泻">腹泻</button>
+          <button class="symptom-btn" data-symptom="大便稀溏">大便稀溏</button>
+          <button class="symptom-btn" data-symptom="大便干结">大便干结</button>
+          <button class="symptom-btn" data-symptom="胃寒">胃寒</button>
+          <button class="symptom-btn" data-symptom="胃灼热">胃灼热</button>
+          <button class="symptom-btn" data-symptom="反酸">反酸</button>
+          <button class="symptom-btn" data-symptom="打嗝">打嗝</button>
+        </div>
+      </div>
+
+      <div class="symptom-group">
+        <h3>其他</h3>
+        <div class="symptom-grid" data-group="其他">
+          <button class="symptom-btn" data-symptom="失眠">失眠</button>
+          <button class="symptom-btn" data-symptom="烦躁">烦躁</button>
+          <button class="symptom-btn" data-symptom="胸闷">胸闷</button>
+          <button class="symptom-btn" data-symptom="心悸">心悸</button>
+          <button class="symptom-btn" data-symptom="腰酸">腰酸</button>
+          <button class="symptom-btn" data-symptom="四肢冷">四肢冷</button>
+          <button class="symptom-btn" data-symptom="手脚心热">手脚心热</button>
+          <button class="symptom-btn" data-symptom="皮肤痒">皮肤痒</button>
+          <button class="symptom-btn" data-symptom="湿疹">湿疹</button>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;">
+        <label style="font-size:13px;font-weight:500;color:var(--text2);display:block;margin-bottom:6px;">补充描述（舌苔、脉象、其他感觉等）</label>
+        <textarea class="free-text" id="symptomFreeText" placeholder="比如：舌苔白腻、脉浮紧、早上起来喉咙有痰、一吹风就头疼加重……"></textarea>
+      </div>
+    </div>
+
+    <!-- Step 2: 西医诊断 -->
+    <div class="card">
+      <h2><span class="icon" style="background:var(--blue-light);color:var(--blue);">2</span> 医院确诊信息</h2>
+      <div class="diag-row">
+        <div class="diag-field">
+          <label>医生诊断（病名）</label>
+          <input type="text" id="diagName" placeholder="如：急性肠胃炎 / 上呼吸道感染 / 湿疹">
+        </div>
+        <div class="diag-field">
+          <label>是否有发烧</label>
+          <input type="text" id="diagFever" placeholder="体温 / 持续时间">
+        </div>
+      </div>
+      <div class="diag-field" style="margin-bottom:12px;">
+        <label>医生开的药 / 药方</label>
+        <textarea class="free-text" id="diagMeds" placeholder="如：头孢克肟、蒙脱石散、中药方剂……" style="min-height:60px;"></textarea>
+      </div>
+      <div class="diag-field">
+        <label>中医诊断（如果有）</label>
+        <textarea class="free-text" id="diagTcm" placeholder="如：医生说是脾胃虚寒、湿热下注……" style="min-height:60px;"></textarea>
+      </div>
+    </div>
+
+    <!-- Step 3: 分析触发 -->
+    <button class="btn-primary" onclick="analyze()">辨证分析 → 生成食谱</button>
+  </div>
+
+  <!-- ============ TAB 2: RESULT ============ -->
+  <div id="tab-result" class="tab-content" style="display:none;">
+
+    <!-- Pattern result -->
+    <div class="card">
+      <h2><span class="icon" style="background:var(--primary-light);color:var(--primary);">证</span> 体质辨证结果</h2>
+      <div id="patternResult"></div>
+      <div class="principle-box" id="principleBox"></div>
+      <div style="font-size:12px;color:var(--text3);">匹配置信度</div>
+      <div class="confidence-bar"><div class="confidence-fill" id="confidenceFill" style="width:0%"></div></div>
+    </div>
+
+    <!-- Diet principles -->
+    <div class="card">
+      <h2><span class="icon" style="background:var(--coral-light);color:var(--coral);">食</span> 饮食原则</h2>
+      <div id="dietPrinciple"></div>
+    </div>
+
+    <!-- Food: OK / Avoid -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+      <div class="card" style="margin:0;">
+        <h2 style="font-size:14px;margin-bottom:10px;">推荐食材</h2>
+        <div class="food-list" id="recommendFoods"></div>
+      </div>
+      <div class="card" style="margin:0;">
+        <h2 style="font-size:14px;margin-bottom:10px;">禁忌食物</h2>
+        <div class="food-list" id="avoidFoods"></div>
+      </div>
+    </div>
+
+    <!-- Meal plan -->
+    <div class="card">
+      <h2><span class="icon" style="background:var(--green-light);color:var(--green);">餐</span> 今日三餐建议</h2>
+      <div class="meal-grid" id="mealGrid"></div>
+      <div class="food-detail-toggle" onclick="toggleWeekly()">展开一周食谱 ▼</div>
+      <div class="weekly-plan hidden" id="weeklyPlan"></div>
+    </div>
+
+    <!-- Healing recipes -->
+    <div class="card">
+      <h2><span class="icon" style="background:var(--coral-light);color:var(--coral);">方</span> 食疗方推荐</h2>
+      <div id="recipeList"></div>
+    </div>
+
+    <!-- Feedback -->
+    <div class="card">
+      <h2><span class="icon" style="background:var(--teal-light);color:var(--teal);">反</span> 吃了之后感觉怎么样？</h2>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:8px;">记录你的饮食反馈，帮助智能体学习优化</p>
+      <div style="margin-bottom:10px;">
+        <textarea class="free-text" id="feedbackNote" placeholder="今天吃了什么？感觉如何？有什么变化？" style="min-height:60px;font-size:13px;"></textarea>
+      </div>
+      <div class="feedback-row">
+        <button class="feedback-btn" data-fb="good" onclick="recordFeedback('good')">明显好转</button>
+        <button class="feedback-btn" data-fb="ok" onclick="recordFeedback('ok')">感觉一般</button>
+        <button class="feedback-btn" data-fb="bad" onclick="recordFeedback('bad')">加重了</button>
+      </div>
+      <div id="feedbackConfirm" style="font-size:13px;color:var(--green);margin-top:8px;display:none;"></div>
+    </div>
+  </div>
+
+  <!-- ============ TAB 3: HISTORY ============ -->
+  <div id="tab-history" class="tab-content" style="display:none;">
+    <div class="card">
+      <h2><span class="icon" style="background:var(--teal-light);color:var(--teal);">历</span> 饮食康复日志</h2>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:12px;">记录每一餐的反馈，建立你的食物-身体敏感度档案</p>
+      <div id="logList"></div>
+      <div id="logEmpty" style="text-align:center;padding:32px 0;color:var(--text3);font-size:14px;">
+        还没有饮食记录<br>分析完成后记得反馈哦
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// TCM KNOWLEDGE BASE
+// ============================================================
+const TCM_PATTERNS = [
+  {
+    id: 'feng-han',
+    name: '风寒感冒',
+    symptoms: ['怕冷', '发热', '头痛', '鼻塞', '流清涕', '无汗', '咳嗽', '咳白痰', '怕风', '身体沉重', '口淡无味'],
+    principle: '辛温解表，疏散风寒。以温热食物助阳驱寒，使邪从汗解。',
+    dietPrinciple: '宜食温热发散之品，忌生冷寒凉。烹饪宜加生姜、葱白、紫苏等辛温调料。',
+    nature: 'warm',
+    okFoods: ['生姜', '葱白', '大蒜', '香菜', '紫苏', '红糖', '红枣', '桂圆', '羊肉', '鸡肉', '粳米'],
+    avoidFoods: ['西瓜', '梨', '苦瓜', '黄瓜', '绿豆', '螃蟹', '冰淇淋', '冷饮', '凉拌菜', '香蕉', '火龙果'],
+    recipes: [
+      { name: '生姜红糖水', desc: '生姜3-5片 + 红糖1勺，沸水冲泡或煮5分钟，趁热饮用，微出汗为佳。', time: '早晚各一次' },
+      { name: '葱白粥', desc: '粳米煮粥，临熟时加葱白3-5段、生姜2片，再煮5分钟。趁热服用，盖被取微汗。', time: '早餐/晚餐' },
+      { name: '紫苏叶水', desc: '紫苏叶10g + 生姜3片，煮水10分钟，加红糖调味。', time: '感觉受凉时立即饮用' }
+    ],
+    weekly: [
+      { day: '第1天', meals: '早餐：葱白粥+生姜炒蛋。午餐：鸡汤面+姜丝。晚餐：小米粥+蒸山药。' },
+      { day: '第2天', meals: '早餐：红糖姜汤+馒头。午餐：羊肉萝卜汤+米饭。晚餐：紫苏叶煮挂面。' },
+      { day: '第3天', meals: '早餐：红枣小米粥。午餐：清炖鸡汤+姜。晚餐：葱白粥+蒜蓉炒青菜。' }
+    ]
+  },
+  {
+    id: 'feng-re',
+    name: '风热感冒',
+    symptoms: ['发热', '怕热', '咽喉痛', '口干', '流黄涕', '咳黄痰', '有汗', '头痛', '咳嗽'],
+    principle: '辛凉解表，疏散风热。宜食清凉发散之品，忌辛温大热。',
+    dietPrinciple: '宜食清淡凉爽、清热解毒之物，忌辛辣燥热。多饮水，适当补充维C。',
+    nature: 'cool',
+    okFoods: ['薄荷', '菊花', '金银花', '桑叶', '梨', '甘蔗', '藕', '荸荠', '绿豆', '苦瓜', '冬瓜', '白萝卜', '绿茶'],
+    avoidFoods: ['生姜', '大蒜', '辣椒', '花椒', '羊肉', '桂圆', '荔枝', '酒', '油炸食品', '烧烤', '火锅', '韭菜'],
+    recipes: [
+      { name: '薄荷菊花饮', desc: '薄荷5g + 菊花5g，沸水冲泡代茶饮，可加少量冰糖。', time: '随时饮用' },
+      { name: '雪梨川贝汤', desc: '雪梨1个去核切块 + 川贝5g + 冰糖少许，隔水炖30分钟。', time: '下午加餐' },
+      { name: '绿豆粥', desc: '绿豆30g + 粳米50g，煮至豆烂粥稠，放温后食用。', time: '早餐/晚餐' }
+    ],
+    weekly: [
+      { day: '第1天', meals: '早餐：绿豆粥+蒸蛋。午餐：冬瓜汤+米饭+清蒸鱼。晚餐：白萝卜汤+烂糊面。' },
+      { day: '第2天', meals: '早餐：藕粉糊。午餐：苦瓜炒蛋+米饭。晚餐：雪梨粥+蒸山药。' },
+      { day: '第3天', meals: '早餐：菊花粥。午餐：清炒丝瓜+米饭+瘦肉汤。晚餐：绿豆百合粥。' }
+    ]
+  },
+  {
+    id: 'pi-wei-xu-han',
+    name: '脾胃虚寒',
+    symptoms: ['胃寒', '腹痛', '腹胀', '食欲差', '大便稀溏', '怕冷', '乏力', '四肢冷', '口淡无味'],
+    principle: '温中散寒，健脾和胃。保护胃气为第一要义，以温补为主。',
+    dietPrinciple: '宜食温热易消化之品，少食多餐。绝对忌生冷凉菜、冷饮。所有食物必须温热食用。',
+    nature: 'warm',
+    okFoods: ['生姜', '山药', '小米', '红枣', '莲子', '芡实', '桂圆', '薏米', '白扁豆', '南瓜', '鸡肉', '鲫鱼', '陈皮'],
+    avoidFoods: ['西瓜', '苦瓜', '黄瓜', '梨', '火龙果', '冰淇淋', '冷饮', '凉拌菜', '牛奶', '豆制品', '肥肉', '油炸', '糯米'],
+    recipes: [
+      { name: '山药红枣粥', desc: '铁棍山药100g切段 + 红枣5颗 + 小米50g，文火慢煮40分钟至粥稠。', time: '早餐' },
+      { name: '陈皮姜枣茶', desc: '陈皮5g + 生姜3片 + 红枣3颗，煮水15分钟代茶饮。', time: '上午/下午各一杯' },
+      { name: '南瓜小米糊', desc: '南瓜200g蒸熟 + 小米50g + 少许姜丝，用破壁机打成糊。', time: '晚餐/加餐' }
+    ],
+    weekly: [
+      { day: '第1天', meals: '早餐：山药红枣粥。午餐：南瓜蒸排骨+软米饭。晚餐：小米姜丝粥+蒸山药。' },
+      { day: '第2天', meals: '早餐：生姜红糖水+小馒头。午餐：清炖鸡汤面。晚餐：莲子芡实粥。' },
+      { day: '第3天', meals: '早餐：小米南瓜糊。午餐：鲫鱼豆腐汤（不放豆腐）+米饭。晚餐：红枣桂圆粥。' }
+    ]
+  },
+  {
+    id: 'pi-wei-shi-re',
+    name: '脾胃湿热',
+    symptoms: ['腹胀', '恶心', '食欲差', '大便干结或黏腻', '口干', '口苦', '身体沉重', '皮肤痒', '湿疹', '烦躁', '胃灼热'],
+    principle: '清热化湿，健脾和中。湿与热交结，需两者同治。',
+    dietPrinciple: '宜食清淡利湿之物，忌甜腻、油腻、生冷。烹饪少油少盐，以蒸煮烩为主。',
+    nature: 'cool',
+    okFoods: ['薏米', '赤小豆', '冬瓜', '苦瓜', '绿豆', '白萝卜', '荷叶', '芹菜', '茭白', '茯苓', '竹叶', '鲜藕', '荞麦'],
+    avoidFoods: ['糯米', '红薯', '肥肉', '油炸', '糖果', '巧克力', '奶油', '芒果', '荔枝', '酒', '辣', '咖啡', '浓茶'],
+    recipes: [
+      { name: '薏米赤小豆汤', desc: '薏米30g + 赤小豆30g提前泡2小时，煮至软烂，可加少量冰糖。', time: '代餐/加餐' },
+      { name: '冬瓜荷叶汤', desc: '冬瓜200g切片 + 干荷叶10g（包好），煮汤20分钟，去荷叶调味。', time: '午餐/晚餐配汤' },
+      { name: '绿豆薏米粥', desc: '绿豆30g + 薏米30g + 粳米30g，煮至豆烂粥稠。', time: '早餐' }
+    ],
+    weekly: [
+      { day: '第1天', meals: '早餐：绿豆薏米粥。午餐：冬瓜瘦肉汤+煮荞麦面。晚餐：荷叶粥+清炒苦瓜。' },
+      { day: '第2天', meals: '早餐：茯苓粥。午餐：清蒸鱼+米饭+炒芹菜。晚餐：薏仁赤豆汤。' },
+      { day: '第3天', meals: '早餐：绿豆百合粥。午餐：冬瓜薏米排骨汤+米饭。晚餐：白灼菜心+藕粉。' }
+    ]
+  },
+  {
+    id: 'shi-re-xia-zhu',
+    name: '湿热下注',
+    symptoms: ['湿疹', '皮肤痒', '腹泻', '大便黏腻', '小便黄', '身体沉重', '口干', '口苦', '烦躁'],
+    principle: '清热利湿，解毒止痒。导湿热从下焦而出。',
+    dietPrinciple: '宜食清热利水渗湿之物，忌海鲜发物、辛辣刺激、甜腻。',
+    nature: 'cool',
+    okFoods: ['薏米', '赤小豆', '土茯苓', '冬瓜', '苦瓜', '马齿苋', '蒲公英', '绿豆', '芹菜', '空心菜', '荞麦', '玉米须'],
+    avoidFoods: ['海鲜', '虾', '蟹', '羊肉', '酒', '辣椒', '芒果', '榴莲', '荔枝', '奶油', '油炸', '韭菜'],
+    recipes: [
+      { name: '土茯苓薏米汤', desc: '鲜土茯苓30g（或干品15g）+ 薏米30g + 赤小豆30g，煮1小时。', time: '下午代茶' },
+      { name: '马齿苋煮水', desc: '新鲜马齿苋50g煮水15分钟，可内服外洗。', time: '每日2次' },
+      { name: '冬瓜薏米排骨汤', desc: '冬瓜300g + 薏米30g + 排骨少许，慢炖1小时。', time: '午餐/晚餐' }
+    ],
+    weekly: [
+      { day: '第1天', meals: '早餐：绿豆薏米粥。午餐：冬瓜薏米汤+米饭。晚餐：荞麦面+炒苦瓜。' },
+      { day: '第2天', meals: '早餐：玉米糊。午餐：清蒸鱼+米饭+炒芹菜。晚餐：土茯苓绿豆汤。' },
+      { day: '第3天', meals: '早餐：荞麦粥。午餐：鸡胸肉+米饭+炒冬瓜。晚餐：薏仁赤豆汤+白灼青菜。' }
+    ]
+  },
+  {
+    id: 'shi-ji',
+    name: '食积停滞',
+    symptoms: ['腹胀', '腹痛', '食欲差', '恶心', '打嗝', '反酸', '大便干结或酸臭', '口臭', '胃灼热', '烦躁'],
+    principle: '消食导滞，和胃降逆。帮助脾胃运化，清除积滞。',
+    dietPrinciple: '宜食消食化积之物，暂停高蛋白高脂肪食物。可适当断食一餐减轻胃肠负担。',
+    nature: 'neutral',
+    okFoods: ['山楂', '白萝卜', '麦芽', '神曲', '陈皮', '鸡内金', '白菜', '萝卜缨', '小米', '薏米', '温蜂蜜水', '大麦茶'],
+    avoidFoods: ['肉食', '油炸', '糯米', '红薯', '豆制品', '牛奶', '坚果', '甜食', '冷饮', '鸡蛋', '奶油'],
+    recipes: [
+      { name: '山楂陈皮水', desc: '干山楂10g + 陈皮5g，煮沸15分钟，代茶温热饮用。', time: '饭后1小时饮用' },
+      { name: '白萝卜小米粥', desc: '白萝卜100g切丝 + 小米50g，煮至粥稠，加少许盐调味。', time: '晚餐' },
+      { name: '大麦茶', desc: '炒大麦15g，沸水冲泡10分钟，代茶饮。帮助消食除胀。', time: '随时饮用' }
+    ],
+    weekly: [
+      { day: '第1天', meals: '早餐：小米粥（清淡）。午餐：白萝卜汤（不加油）。晚餐：可考虑轻断食或只喝粥汤。' },
+      { day: '第2天', meals: '早餐：山楂小米粥。午餐：蒸山药+白菜汤。晚餐：白萝卜粥。' },
+      { day: '第3天', meals: '早餐：大麦粥。午餐：清炒萝卜丝+米饭（少量）。晚餐：小米南瓜粥。' }
+    ]
+  },
+  {
+    id: 'tan-shi',
+    name: '痰湿内蕴',
+    symptoms: ['身体沉重', '乏力', '咳嗽', '咳白痰', '腹胀', '食欲差', '胸闷', '大便稀溏', '水肿', '头晕'],
+    principle: '燥湿化痰，理气和中。脾为生痰之源，需健脾以绝痰源。',
+    dietPrinciple: '宜食健脾燥湿化痰之品，忌肥甘厚味、生冷、甜腻、酒。少食多餐。',
+    nature: 'warm',
+    okFoods: ['陈皮', '薏米', '茯苓', '白扁豆', '山药', '冬瓜', '生姜', '大蒜', '海带', '萝卜', '芥菜', '赤小豆', '炒麦芽'],
+    avoidFoods: ['糯米', '红薯', '肥肉', '油炸', '奶茶', '奶油', '冰淇淋', '香蕉', '芒果', '甜点', '酒', '牛奶'],
+    recipes: [
+      { name: '陈皮茯苓茶', desc: '陈皮5g + 茯苓10g + 生姜2片，煮水15分钟代茶。', time: '每日上午下午各一杯' },
+      { name: '薏米茯苓粥', desc: '薏米30g + 茯苓15g（磨粉）+ 粳米40g，慢煮40分钟。', time: '早餐' },
+      { name: '冬瓜海带汤', desc: '冬瓜200g + 海带20g + 生姜3片，煮汤20分钟。', time: '午餐/晚餐配汤' }
+    ],
+    weekly: [
+      { day: '第1天', meals: '早餐：薏米茯苓粥。午餐：清蒸鱼+米饭+炒冬瓜。晚餐：萝卜汤+杂粮饭。' },
+      { day: '第2天', meals: '早餐：陈皮小米粥。午餐：海带瘦肉汤+米饭。晚餐：山药粥+白灼芥菜。' },
+      { day: '第3天', meals: '早餐：赤小豆薏米粥。午餐：清炖鸡+米饭+炒白萝卜。晚餐：茯苓山药糊。' }
+    ]
+  },
+  {
+    id: 'qi-xu',
+    name: '气虚',
+    symptoms: ['乏力', '食欲差', '怕冷', '有汗', '腹胀', '大便稀溏', '头晕', '心悸', '气短', '声音低微'],
+    principle: '补气健脾，益肺固表。气是生命动力，重在渐进调补。',
+    dietPrinciple: '宜食补气健脾之品，忌耗气破气之物。烹饪宜久炖久煮。',
+    nature: 'warm',
+    okFoods: ['黄芪', '党参', '山药', '红枣', '桂圆', '鸡肉', '牛肉', '鲫鱼', '莲子', '小米', '粳米', '香菇', '土豆'],
+    avoidFoods: ['白萝卜', '山楂', '薄荷', '浓茶', '咖啡', '冷饮', '油炸', '辣椒', '槟榔', '酒'],
+    recipes: [
+      { name: '黄芪党参鸡汤', desc: '黄芪15g + 党参10g + 鸡肉200g + 红枣3颗 + 生姜2片，炖1.5小时。', time: '午餐主菜' },
+      { name: '山药红枣粥', desc: '山药100g + 红枣5颗 + 小米50g，文火慢煮至粥稠。', time: '早餐' },
+      { name: '黄芪水', desc: '黄芪10g，沸水冲泡或煮10分钟，代茶饮用。', time: '上午' }
+    ],
+    weekly: [
+      { day: '第1天', meals: '早餐：红枣小米粥+水煮蛋。午餐：黄芪鸡汤+米饭+炒青菜。晚餐：山药排骨汤+杂粮饭。' },
+      { day: '第2天', meals: '早餐：桂圆莲子粥。午餐：清蒸鲈鱼+米饭。晚餐：香菇鸡丝粥。' },
+      { day: '第3天', meals: '早餐：党参小米粥。午餐：土豆炖牛肉+米饭。晚餐：红枣山药糊。' }
+    ]
+  },
+  {
+    id: 'yin-xu',
+    name: '阴虚',
+    symptoms: ['口干', '手心热', '脚心热', '烦躁', '失眠', '夜间出汗', '大便干结', '咽喉干', '头晕', '腰酸'],
+    principle: '滋阴润燥，清热降火。阴液不足则虚火内生，须以柔润之物养阴。',
+    dietPrinciple: '宜食滋阴润燥甘凉之品，忌温燥辛辣耗阴之物。多进汤羹粥糊。',
+    nature: 'cool',
+    okFoods: ['银耳', '百合', '雪梨', '石斛', '麦冬', '沙参', '玉竹', '莲藕', '山药', '冬瓜', '甲鱼', '鸭肉', '黑芝麻'],
+    avoidFoods: ['辣椒', '花椒', '生姜', '大蒜', '羊肉', '桂圆', '荔枝', '酒', '咖啡', '油炸', '烧烤', '槟榔'],
+    recipes: [
+      { name: '银耳百合雪梨羹', desc: '银耳1朵泡发撕小朵 + 百合20g + 雪梨1个去核切块 + 冰糖，炖1小时。', time: '下午加餐/睡前' },
+      { name: '石斛麦冬茶', desc: '铁皮石斛5g + 麦冬10g，沸水冲泡或煮10分钟代茶。', time: '每日代茶' },
+      { name: '沙参玉竹老鸭汤', desc: '沙参15g + 玉竹15g + 鸭肉200g，慢炖1.5小时。', time: '午餐主菜' }
+    ],
+    weekly: [
+      { day: '第1天', meals: '早餐：百合莲子粥。午餐：清蒸鸭肉+米饭+炒冬瓜。晚餐：银耳雪梨羹+蒸山药。' },
+      { day: '第2天', meals: '早餐：石斛小米粥。午餐：甲鱼汤+米饭。晚餐：藕粉糊+水蒸蛋。' },
+      { day: '第3天', meals: '早餐：黑芝麻糊。午餐：清蒸鱼+米饭+上汤娃娃菜。晚餐：百合银耳粥。' }
+    ]
+  },
+  {
+    id: 'gan-yu',
+    name: '肝郁气滞',
+    symptoms: ['烦躁', '胸闷', '腹胀', '失眠', '头痛', '打嗝', '口苦', '食欲差', '情绪波动大', '乳房胀'],
+    principle: '疏肝解郁，理气和中。重在调畅气机，以通为补。',
+    dietPrinciple: '宜食疏肝理气之品，忌收敛固涩之物。保持心情舒畅比食谱更重要。',
+    nature: 'neutral',
+    okFoods: ['玫瑰花', '薄荷', '佛手', '陈皮', '萝卜', '芹菜', '金橘', '茉莉花', '山楂', '荞麦', '菠菜', '香菇', '木耳', '藕'],
+    avoidFoods: ['南瓜', '红薯', '板栗', '糯米', '奶油', '油炸', '过酸食物', '咖啡', '酒', '浓茶'],
+    recipes: [
+      { name: '玫瑰花茶', desc: '干玫瑰花5-8朵 + 蜂蜜少许，沸水冲泡5分钟。', time: '上午工作间隙' },
+      { name: '佛手陈皮茶', desc: '佛手5g + 陈皮3g，沸水冲泡代茶。', time: '饭后1小时' },
+      { name: '金橘萝卜汤', desc: '金橘5颗拍裂 + 白萝卜100g切丝 + 少许生姜，煮汤10分钟。', time: '晚餐配汤' }
+    ],
+    weekly: [
+      { day: '第1天', meals: '早餐：荞麦粥+玫瑰花茶。午餐：清蒸鱼+米饭+炒芹菜。晚餐：萝卜汤+杂粮饭。' },
+      { day: '第2天', meals: '早餐：小米粥+蒸藕片。午餐：香菇炒肉片+米饭+炒菠菜。晚餐：金橘萝卜汤。' },
+      { day: '第3天', meals: '早餐：茉莉花粥。午餐：清炖鸡+米饭+炒木耳。晚餐：藕粉+水蒸蛋。' }
+    ]
+  },
+  {
+    id: 'wen-bing-hou',
+    name: '病后恢复期',
+    symptoms: ['乏力', '食欲差', '口干', '气短', '失眠', '容易疲劳'],
+    principle: '调和脾胃，扶正祛邪。大病之后脾胃最弱，切勿急于进补。',
+    dietPrinciple: '从清淡流质→半流质→软食→正常饮食逐步过渡。每加一种新食物观察身体反应。',
+    nature: 'neutral',
+    okFoods: ['小米', '山药', '粳米', '南瓜', '鸡肉', '鸡蛋', '鲫鱼', '白菜', '胡萝卜', '苹果', '蒸蛋', '藕粉', '瘦肉汤'],
+    avoidFoods: ['生冷', '油腻', '辛辣', '煎炸', '海鲜发物', '糯米', '酒', '过甜', '过硬', '牛奶'],
+    recipes: [
+      { name: '小米油（最养胃）', desc: '小米50g加水大火煮沸后转小火，熬出表层米油，撇出食用。这是病后恢复第一选择。', time: '早餐' },
+      { name: '鲫鱼淮山汤', desc: '鲫鱼1条煎至微黄 + 铁棍山药100g + 生姜2片 + 开水，炖40分钟至汤白。', time: '午餐主菜' },
+      { name: '苹果蒸蛋', desc: '苹果半个磨泥 + 鸡蛋1个打散 + 少许盐，隔水蒸10分钟。酸甜开胃。', time: '下午加餐' }
+    ],
+    weekly: [
+      { day: '第1天', meals: '早餐：小米油（只喝米油）。午餐：小米粥（粥体）。晚餐：小米南瓜粥。' },
+      { day: '第2天', meals: '早餐：小米粥+蒸蛋。午餐：鲫鱼汤+蒸山药。晚餐：南瓜小米糊。' },
+      { day: '第3天', meals: '早餐：山药粥+水蒸蛋。午餐：瘦肉汤+软米饭。晚餐：苹果蒸蛋+藕粉。' }
+    ]
+  }
+];
+
+// Food properties database
+const FOOD_PROPERTIES = {
+  '生姜': { nature: '温', meridians: '肺、胃、脾', effect: '发汗解表，温中止呕' },
+  '葱白': { nature: '温', meridians: '肺、胃', effect: '发汗解表，散寒通阳' },
+  '大蒜': { nature: '温', meridians: '脾、胃、肺', effect: '温中行滞，解毒杀虫' },
+  '红糖': { nature: '温', meridians: '脾、肝', effect: '温中补虚，活血化瘀' },
+  '紫苏': { nature: '温', meridians: '肺、脾', effect: '解表散寒，行气和胃' },
+  '香菜': { nature: '温', meridians: '肺、胃', effect: '发表透疹，消食下气' },
+  '桂圆': { nature: '温', meridians: '心、脾', effect: '补益心脾，养血安神' },
+  '红枣': { nature: '温', meridians: '脾、胃', effect: '补中益气，养血安神' },
+  '羊肉': { nature: '大热', meridians: '脾、肾', effect: '温中暖肾，益气补虚' },
+  '鸡肉': { nature: '温', meridians: '脾、胃', effect: '温中益气，补精填髓' },
+  '薄荷': { nature: '凉', meridians: '肺、肝', effect: '疏散风热，清利头目' },
+  '菊花': { nature: '微寒', meridians: '肺、肝', effect: '疏散风热，平肝明目' },
+  '金银花': { nature: '寒', meridians: '肺、心、胃', effect: '清热解毒，疏散风热' },
+  '雪梨': { nature: '凉', meridians: '肺、胃', effect: '清热润肺，生津止渴' },
+  '绿豆': { nature: '寒', meridians: '心、胃', effect: '清热解毒，消暑利水' },
+  '苦瓜': { nature: '寒', meridians: '心、脾、胃', effect: '清热祛暑，明目解毒' },
+  '冬瓜': { nature: '微寒', meridians: '肺、小肠', effect: '清热利水，消肿解毒' },
+  '白萝卜': { nature: '凉', meridians: '肺、胃', effect: '清热生津，消食化滞' },
+  '山药': { nature: '平', meridians: '脾、肺、肾', effect: '补脾养胃，生津益肺' },
+  '小米': { nature: '微温', meridians: '胃、肾', effect: '健脾和胃，滋阴安神' },
+  '薏米': { nature: '微寒', meridians: '脾、胃、肺', effect: '健脾利湿，清热排脓' },
+  '陈皮': { nature: '温', meridians: '脾、肺', effect: '理气健脾，燥湿化痰' },
+  '山楂': { nature: '微温', meridians: '脾、胃、肝', effect: '消食化积，行气散瘀' },
+  '南瓜': { nature: '温', meridians: '脾、胃', effect: '补中益气，消炎止痛' },
+  '银耳': { nature: '平', meridians: '肺、胃', effect: '滋阴润肺，养胃生津' },
+  '百合': { nature: '微寒', meridians: '心、肺', effect: '养阴润肺，清心安神' },
+  '赤小豆': { nature: '平', meridians: '心、小肠', effect: '利水消肿，解毒排脓' },
+  '茯苓': { nature: '平', meridians: '心、脾、肺', effect: '利水渗湿，健脾宁心' },
+  '莲子': { nature: '平', meridians: '脾、肾、心', effect: '补脾止泻，益肾固精' },
+  '芡实': { nature: '平', meridians: '脾、肾', effect: '补脾祛湿，益肾固精' },
+  '黄芪': { nature: '微温', meridians: '脾、肺', effect: '补气升阳，益卫固表' },
+  '党参': { nature: '平', meridians: '脾、肺', effect: '补中益气，健脾益肺' },
+  '玫瑰花': { nature: '温', meridians: '肝、脾', effect: '行气解郁，和血止痛' },
+  '佛手': { nature: '温', meridians: '肝、脾、胃、肺', effect: '疏肝理气，和中化痰' },
+  '莲藕': { nature: '凉（生）/温（熟）', meridians: '心、脾、胃', effect: '清热生津（生）/健脾开胃（熟）' },
+  '马齿苋': { nature: '寒', meridians: '肝、大肠', effect: '清热解毒，凉血止痢' },
+  '土茯苓': { nature: '平', meridians: '肝、胃', effect: '解毒利湿，通利关节' },
+};
+
+// ============================================================
+// APP STATE
+// ============================================================
+let state = {
+  selectedSymptoms: new Set(),
+  feedbacks: JSON.parse(localStorage.getItem('dietFeedbacks') || '[]'),
+  lastPattern: null
+};
+
+// ============================================================
+// UI FUNCTIONS
+// ============================================================
+function switchTab(name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).style.display = 'block';
+  document.querySelector(`[data-tab="${name}"]`).classList.add('active');
+}
+
+// Symptom toggle
+document.querySelectorAll('.symptom-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const symptom = this.dataset.symptom;
+    if (state.selectedSymptoms.has(symptom)) {
+      state.selectedSymptoms.delete(symptom);
+      this.classList.remove('selected');
+    } else {
+      state.selectedSymptoms.add(symptom);
+      this.classList.add('selected');
+    }
+  });
+});
+
+// ============================================================
+// ANALYSIS ENGINE
+// ============================================================
+function analyze() {
+  const symptoms = Array.from(state.selectedSymptoms);
+  const freeText = document.getElementById('symptomFreeText').value.trim();
+  const diagName = document.getElementById('diagName').value.trim();
+  const diagMeds = document.getElementById('diagMeds').value.trim();
+  const diagTcm = document.getElementById('diagTcm').value.trim();
+
+  if (symptoms.length === 0 && !freeText) {
+    alert('请至少选择或描述一个症状，帮你分析体质。');
+    return;
+  }
+
+  // Score each pattern
+  let scored = TCM_PATTERNS.map(p => {
+    let matchCount = 0;
+    let partialCount = 0;
+    symptoms.forEach(s => {
+      if (p.symptoms.includes(s)) matchCount++;
+    });
+    // Also check free text
+    if (freeText) {
+      p.symptoms.forEach(s => {
+        if (freeText.includes(s)) partialCount += 0.5;
+      });
+    }
+    // Check TCM diagnosis match
+    if (diagTcm && freeText) {
+      // extra boost if TCM diagnosis keywords overlap
+    }
+
+    let confidence = (matchCount + partialCount) / Math.max(symptoms.length + 1, 3);
+    return { pattern: p, score: confidence, matchCount };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+
+  // If scores are too close, check western diagnosis for tiebreak
+  if (scored.length > 1 && scored[0].score - scored[1].score < 0.15 && diagName) {
+    // Try to match western diagnosis to pattern
+    const diagKeywords = {
+      '上呼吸道感染': ['feng-han', 'feng-re'],
+      '感冒': ['feng-han', 'feng-re'],
+      '肠胃炎': ['pi-wei-xu-han', 'pi-wei-shi-re', 'shi-re-xia-zhu'],
+      '胃炎': ['pi-wei-xu-han', 'pi-wei-shi-re'],
+      '湿疹': ['shi-re-xia-zhu', 'pi-wei-shi-re'],
+      '消化不良': ['shi-ji', 'pi-wei-xu-han'],
+      '慢性胃炎': ['pi-wei-xu-han', 'tan-shi'],
+      '气管炎': ['tan-shi', 'feng-han'],
+      '肺炎': ['feng-re', 'tan-shi'],
+      '腹泻': ['pi-wei-xu-han', 'pi-wei-shi-re', 'shi-re-xia-zhu'],
+      '过敏': ['feng-re', 'pi-wei-xu-han'],
+      '咽喉炎': ['feng-re', 'yin-xu'],
+      '失眠': ['yin-xu', 'gan-yu'],
+      '疲劳综合征': ['qi-xu', 'pi-wei-xu-han'],
+      '新冠': ['wen-bing-hou', 'feng-re', 'tan-shi']
+    };
+
+    for (let [kw, ids] of Object.entries(diagKeywords)) {
+      if (diagName.includes(kw)) {
+        scored.forEach(s => {
+          if (ids.includes(s.pattern.id)) s.score += 0.2;
+        });
+        break;
+      }
+    }
+    scored.sort((a, b) => b.score - a.score);
+  }
+
+  const best = scored[0];
+  if (!best || best.score < 0.05) {
+    alert('暂时无法匹配到已知体质类型，建议补充更多信息。');
+    return;
+  }
+
+  state.lastPattern = best.pattern;
+
+  // Render result
+  renderResult(best.pattern, Math.round(best.score * 100), scored);
+  switchTab('result');
+}
+
+function renderResult(pattern, confidence, allScores) {
+  // Pattern badge
+  const colorMap = {
+    'warm': { bg: 'var(--coral-light)', color: 'var(--coral)', text: '温性体质 · 宜温热' },
+    'cool': { bg: 'var(--blue-light)', color: 'var(--blue)', text: '凉性体质 · 宜清凉' },
+    'neutral': { bg: 'var(--bg2)', color: 'var(--text2)', text: '平性体质 · 宜中和' }
+  };
+  const info = colorMap[pattern.nature] || colorMap.neutral;
+
+  document.getElementById('patternResult').innerHTML =
+    `<span class="pattern-badge" style="background:${info.bg};color:${info.color};">${pattern.name}</span>` +
+    `<span style="font-size:13px;color:var(--text2);margin-left:8px;">（${info.text}）</span>` +
+    (confidence < 60 ? `<div style="font-size:12px;color:var(--amber);margin-top:6px;">提示：症状信息有限，建议补充舌苔和脉象以获得更准确判断。</div>` : '');
+
+  document.getElementById('principleBox').textContent = pattern.principle;
+  document.getElementById('confidenceFill').style.width = Math.min(confidence, 100) + '%';
+
+  // Diet principle
+  document.getElementById('dietPrinciple').innerHTML =
+    `<p style="font-size:14px;margin-bottom:8px;">${pattern.dietPrinciple}</p>` +
+    `<div class="prop-grid">
+      <div class="prop-item ${pattern.nature === 'warm' ? 'prop-warm' : ''}">宜温</div>
+      <div class="prop-item ${pattern.nature === 'neutral' ? 'prop-neutral' : ''}">宜淡</div>
+      <div class="prop-item ${pattern.nature === 'cool' ? 'prop-cool' : ''}">宜软</div>
+    </div>`;
+
+  // Foods
+  const recommendHtml = pattern.okFoods.map(f =>
+    `<span class="food-tag food-ok">${f}</span>`
+  ).join('');
+  document.getElementById('recommendFoods').innerHTML = recommendHtml;
+
+  const avoidHtml = pattern.avoidFoods.map(f =>
+    `<span class="food-tag food-no">${f}</span>`
+  ).join('');
+  document.getElementById('avoidFoods').innerHTML = avoidHtml;
+
+  // Meals
+  document.getElementById('mealGrid').innerHTML = [
+    { icon: '☀', title: '早餐', content: pattern.weekly?.[0]?.meals?.split('。')[0] + '。' || '小米粥或温热粥品，避免生冷' },
+    { icon: '🌤', title: '午餐', content: pattern.weekly?.[0]?.meals?.split('。')[1] + '。' || '温热软食，营养均衡' },
+    { icon: '🌙', title: '晚餐', content: pattern.weekly?.[0]?.meals?.split('。')[2] + '。' || '清淡易消化，七分饱' },
+    { icon: '🥜', title: '加餐', content: '温热汤羹或蒸水果，不建议冷食零食' }
+  ].map(m => `
+    <div class="meal-card">
+      <h4><span class="meal-icon">${m.icon}</span>${m.title}</h4>
+      <p>${m.content}</p>
+    </div>
+  `).join('');
+
+  // Weekly plan
+  document.getElementById('weeklyPlan').innerHTML = pattern.weekly.map((d, i) => `
+    <div class="day-plan">
+      <h5>${d.day}</h5>
+      <p>${d.meals}</p>
+    </div>
+  `).join('');
+
+  // Recipes
+  document.getElementById('recipeList').innerHTML = pattern.recipes.map(r => `
+    <div style="background:var(--bg2);border-radius:10px;padding:14px 16px;margin-bottom:10px;border:1px solid var(--border);">
+      <h4 style="font-size:14px;font-weight:500;margin-bottom:4px;">${r.name}</h4>
+      <p style="font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:4px;">${r.desc}</p>
+      <span style="font-size:12px;color:var(--primary);">食用时间：${r.time}</span>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// WEEKLY TOGGLE
+// ============================================================
+function toggleWeekly() {
+  const el = document.getElementById('weeklyPlan');
+  el.classList.toggle('hidden');
+}
+
+// ============================================================
+// FEEDBACK
+// ============================================================
+function recordFeedback(rating) {
+  const note = document.getElementById('feedbackNote').value.trim();
+  const pattern = state.lastPattern;
+  if (!pattern) { alert('请先完成辨证分析'); return; }
+
+  const entry = {
+    timestamp: new Date().toLocaleString(),
+    pattern: pattern.name,
+    rating: rating,
+    note: note || '(未备注)',
+    okFoods: pattern.okFoods.slice(0, 5),
+    avoidFoods: pattern.avoidFoods.slice(0, 5)
+  };
+
+  state.feedbacks.push(entry);
+  localStorage.setItem('dietFeedbacks', JSON.stringify(state.feedbacks));
+
+  // Visual feedback
+  document.querySelectorAll('.feedback-btn').forEach(b => b.className = 'feedback-btn');
+  document.querySelector(`[data-fb="${rating}"]`).classList.add(
+    rating === 'good' ? 'selected-good' : rating === 'bad' ? 'selected-bad' : 'selected-ok'
+  );
+
+  const confirmEl = document.getElementById('feedbackConfirm');
+  confirmEl.style.display = 'block';
+  confirmEl.textContent = rating === 'good' ? '不错！继续坚持这个饮食方向。' :
+    rating === 'ok' ? '收到，可以微调食谱再看看。' : '收到！说明这个饮食方案需要调整，建议重新分析。';
+
+  setTimeout(() => { confirmEl.style.display = 'none'; }, 3000);
+
+  updateLogView();
+}
+
+function updateLogView() {
+  const list = document.getElementById('logList');
+  const empty = document.getElementById('logEmpty');
+  const count = document.getElementById('logCount');
+
+  if (state.feedbacks.length === 0) {
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    count.textContent = '0';
+    return;
+  }
+
+  empty.style.display = 'none';
+  count.textContent = state.feedbacks.length;
+
+  // Display in reverse chronological order
+  const reversed = [...state.feedbacks].reverse();
+  list.innerHTML = reversed.map((f, i) => {
+    const emoji = f.rating === 'good' ? '✓' : f.rating === 'bad' ? '✗' : '~';
+    const color = f.rating === 'good' ? 'var(--green)' : f.rating === 'bad' ? 'var(--red)' : 'var(--amber)';
+    return `
+      <div style="padding:12px 0;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start;">
+        <span style="font-size:16px;color:${color};font-weight:500;min-width:20px;">${emoji}</span>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:500;">${f.pattern || '辨证'} 饮食反馈</div>
+          <div style="font-size:12px;color:var(--text2);margin:2px 0;">${f.note}</div>
+          <div style="font-size:11px;color:var(--text3);">${f.timestamp}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+updateLogView();
+</script>
+</body>
+</html>
