@@ -1,5 +1,6 @@
-# WorkBuddy system files
-.workbuddy/
-
 # macOS
 .DS_Store
+# WorkBuddy system files
+.workbuddy/
+# Generated images
+generated-images/
